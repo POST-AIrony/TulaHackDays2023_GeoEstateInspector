@@ -26,9 +26,7 @@ async def decode_token(token: str) -> dict:
         token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM]
     )
 
-    if (
-        datetime.datetime.fromtimestamp(payload.get("exp")) < datetime.datetime.now()
-    ):  # TODO: check if err
+    if datetime.datetime.fromtimestamp(payload.get("exp")) < datetime.datetime.now():
         raise TimeoutError
 
     return payload
