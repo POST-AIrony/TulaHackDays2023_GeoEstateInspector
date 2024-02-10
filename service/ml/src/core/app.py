@@ -1,7 +1,8 @@
+from core import lifespan
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan.lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 from ml.controller import ML

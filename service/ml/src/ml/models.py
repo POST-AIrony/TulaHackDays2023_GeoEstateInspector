@@ -38,4 +38,14 @@ class TimesBaseModel(BaseModel):
 
 class PhotoFromUser(TimesBaseModel):
     from_user_id: int = IntField()
-    reult_src: str = CharField(max_length=200)
+    result_src: str = CharField(max_length=200)
+
+
+class ModelType(TimesBaseModel):
+    title: str = CharField(max_length=50)
+    src: str = CharField(max_length=200)
+
+
+class CityModel(TimesBaseModel):
+    title: str = CharField(max_length=70)
+    src: str = CharField(max_length=200)
