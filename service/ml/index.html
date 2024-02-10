@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chat</title>
+	</head>
+	<body>
+		<h1>WebSocket Client For GEI</h1>
+		<button onClick="showForm(event)" id="connect">Connect</button>
+		<form
+			action=""
+			onsubmit="sendMessage(event)"
+			id="form"
+			style="display: none"
+		>
+			<input type="file" id="filename" />
+			<button type="submit">send</button>
+		</form>
+		<ul id="messages"></ul>
+		<script>
+			var clientID = Date.now()
+			var ws = new WebSocket(`ws://localhost:8000/ws/${clientID}`)
+
+			function processMessage(event) {
+				alert(event.data)
+			}
+
+			ws.onmessage = processMessage
+
+			function sendMessage(event) {
+				var file = document.getElementById('filename').files[0]
+				var reader = new FileReader()
+
+				var rawData = new ArrayBuffer()
+
+				reader.loadend = function () {}
+				reader.onload = function (e) {
+					rawData = e.target.result
+
+					ws.send(rawData)
+				}
+
+				reader.readAsArrayBuffer(file)
+
+				event.preventDefault()
+			}
+
+			function showForm(event) {
+				var button = document.getElementById('connect')
+				var form = document.getElementById('form')
+				button.style.display = 'none'
+				form.style.display = 'block'
+			}
+		</script>
+	</body>
+</html>
