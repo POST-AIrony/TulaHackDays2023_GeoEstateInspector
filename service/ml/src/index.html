@@ -18,7 +18,9 @@
 		<ul id="messages"></ul>
 		<script>
 			var clientID = Date.now()
-			var ws = new WebSocket(`ws://localhost:8000/ws/${clientID}`)
+			var ws = new WebSocket(
+				`ws://localhost:8001/ws/${clientID}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDgxODg0OTgsInN1YiI6IjIifQ.QrMkIx7EBImvrsplj4xVFJFllsav2Et2ZOujw1DXbm8`
+			)
 
 			function processMessage(event) {
 				alert(event.data)

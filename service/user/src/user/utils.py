@@ -1,7 +1,7 @@
 import datetime
 import random
 
-from core import settings
+from core import handlers, settings
 from jose import jwt
 from passlib.context import CryptContext
 

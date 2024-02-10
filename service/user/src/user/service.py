@@ -1,3 +1,4 @@
+from core import handlers
 from user import exceptions, models, repository, schemas, service, utils
 
 
@@ -6,7 +7,7 @@ class UserService:
         self.userRepo = userRepo
 
     async def me(self, data: schemas.BaseUserRequest) -> schemas.UserModel:
-        token_data = await utils.decode_token(data.token)
+        token_data = await handlers.token_decode_handler(data.token)
 
         try:
             user = await self.userRepo.get_by_id(user_id=int(token_data.get("sub")))
