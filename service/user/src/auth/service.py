@@ -19,17 +19,19 @@ class AuthService:
                     first_name=data.first_name,
                     last_name=data.last_name,
                     email=data.email,
-                    password=utils.get_hashed_password(data.password),
+                    password=await utils.get_hashed_password(data.password),
                     username=data.username,
                     code=await utils.generate_email_verification_code(),
                 )
             )
         except OperationalError:
             raise exceptions.OperationError
+        except:
+            raise exceptions.OperationError
 
         tdq.send_email_verification_code.send(user.email, user.code)
 
-        return utils.create_access_token(user.id)
+        return await utils.create_access_token(user.id)
 
     async def sign_in(self, data: schemas.SignInRequest):
         try:
@@ -37,8 +39,8 @@ class AuthService:
         except:
             raise exceptions.UserNotFound
 
-        if utils.verify_password(data.password, user.password):
-            return utils.create_access_token(user.id)
+        if await utils.verify_password(data.password, user.password):
+            return await utils.create_access_token(user.id)
         raise exceptions.WrongPassword
 
     async def verify_email(self, data: schemas.VerifyEmailRequest):

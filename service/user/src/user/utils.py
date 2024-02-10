@@ -8,7 +8,7 @@ from passlib.context import CryptContext
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def create_access_token(subject: int, expires_delta: int = None) -> str:
+async def create_access_token(subject: int, expires_delta: int = None) -> str:
     if expires_delta is not None:
         expires_delta = datetime.datetime.utcnow() + expires_delta
     else:
@@ -32,11 +32,11 @@ async def decode_token(token: str) -> dict:
     return payload
 
 
-def get_hashed_password(password: str) -> str:
+async def get_hashed_password(password: str) -> str:
     return password_context.hash(password)
 
 
-def verify_password(password: str, hashed_pass: str) -> bool:
+async def verify_password(password: str, hashed_pass: str) -> bool:
     return password_context.verify(password, hashed_pass)
 
 
