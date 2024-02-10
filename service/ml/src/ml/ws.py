@@ -52,13 +52,11 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int, token: str):
     while True:
         try:
             photo = await websocket.receive()
-            print(photo)
-            n = uuid.uuid4()
-            print(n)
-            with open(f"static/{n}.png", "wb") as f:
+            file_name = uuid.uuid4()
+            with open(f"static/{file_name}.png", "wb") as f:
                 f.write(photo.get("bytes"))
 
-            await websocket.send_text(f"static/{n}.png")
+            await websocket.send_text(f"static/{file_name}.png")
         except WebSocketException:
             await websocket.close()
             await manager.delete(websocket)
