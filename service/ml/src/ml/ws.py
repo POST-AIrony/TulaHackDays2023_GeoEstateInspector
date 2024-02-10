@@ -55,7 +55,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int, token: str):
             file_name = uuid.uuid4()
             with open(f"static/{file_name}.png", "wb") as f:
                 f.write(photo.get("bytes"))
-
+            # https://t.me/FatherKomm ТУТ ФУНКЦИЮ СВОЮ ВПИХИВАЕШЬ КОТОРАЯ ПРИНИМАЕТ f"static/{file_name}.png" и НА ВЫХОД ОТДАЕТ ПУТЬ К ФОТКЕ TODO:
             await websocket.send_text(f"static/{file_name}.png")
         except WebSocketException:
             await websocket.close()
