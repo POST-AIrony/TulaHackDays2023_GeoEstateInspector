@@ -19,8 +19,9 @@
 		<script>
 			var clientID = Date.now()
 			const token = prompt('TOKEN: ')
+			const model = prompt('MODEL: ')
 			var ws = new WebSocket(
-				`ws://localhost:8001/ws/${clientID}?token=${token}`
+				`ws://localhost:8001/ws/${clientID}/${model}?token=${token}`
 			)
 
 			function processMessage(event) {

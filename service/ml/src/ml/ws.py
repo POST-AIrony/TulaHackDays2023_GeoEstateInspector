@@ -15,18 +15,35 @@ ws_ml = APIRouter()
 
 
 class ConnectionManager:
+    """Класс ConnectionManager предназначен для управления соединениями через WebSocket.
+
+    При инициализации класса создается пустой список self.connections, который будет использоваться для хранения подключенных WebSocket-соединений.
+
+    Метод connect асинхронно принимает WebSocket-соединение и добавляет его в список self.connections.
+
+    Метод broadcast асинхронно отправляет данные всем подключенным WebSocket-соединениям.
+
+    Метод delete асинхронно удаляет указанное WebSocket-соединение из списка self.connections.
+
+    Примечание: для работы с WebSocket-соединениями рекомендуется использовать библиотеку aiohttp.
+    """
+
     def __init__(self):
+        """Инициализирует новый экземпляр класса ConnectionManager, создавая пустой список self.connections."""
         self.connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
+        """Асинхронно принимает WebSocket-соединение и добавляет его в список self.connections."""
         await websocket.accept()
         self.connections.append(websocket)
 
     async def broadcast(self, data: str):
+        """Асинхронно отправляет данные всем WebSocket-соединениям, подключенным к экземпляру ConnectionManager."""
         for connection in self.connections:
             await connection.send_text(data)
 
     async def delete(self, w: WebSocket):
+        """Асинхронно удаляет указанное WebSocket-соединение из списка self.connections."""
         self.connections.remove(w)
 
 
@@ -38,8 +55,10 @@ async def get():
     return HTMLResponse(html)
 
 
-@ws_ml.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: int, token: str):
+@ws_ml.websocket("/ws/{client_id}/{model_type}")
+async def websocket_endpoint(
+    websocket: WebSocket, client_id: int, model_type: str, token: str
+):
     print("WS CALL")
     await manager.connect(websocket)
     res = await MLService.get_user(token)
