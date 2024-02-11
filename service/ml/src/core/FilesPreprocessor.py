@@ -44,7 +44,7 @@ def convert_tif_to_jpg(path_to_image, output_folder):
         return output_path
 
 
-def archive_and_delete_files(name, path_to_save_folder):
+def archive_and_delete_files(name, path_to_save_folder, path_to_output_zip_folder):
     """
     Архивирует и удаляет файлы с определенным именем.
 
@@ -75,10 +75,11 @@ def archive_and_delete_files(name, path_to_save_folder):
         return None
 
     # Создание ZIP-архива
-    zip_file_path = os.path.join("static/from_ml", f"{name}_archive.zip")
+    zip_file_path = os.path.join(path_to_output_zip_folder, f"{name}_archive.zip")
     with ZipFile(zip_file_path, "w") as zipfile:
         for file_name in files_to_archive:
             file_path = os.path.join(path_to_save_folder, file_name)
+            
             # Добавление файла в архив
             zipfile.write(file_path, os.path.basename(file_path))
 
