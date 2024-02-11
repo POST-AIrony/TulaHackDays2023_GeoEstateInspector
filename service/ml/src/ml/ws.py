@@ -55,6 +55,10 @@ async def get():
     return HTMLResponse(html)
 
 
+async def заглушка_мл_функции(путь_до_фото):
+    return путь_до_фото
+
+
 @ws_ml.websocket("/ws/{client_id}/{model_type}")
 async def websocket_endpoint(
     websocket: WebSocket, client_id: int, model_type: str, token: str
@@ -75,7 +79,8 @@ async def websocket_endpoint(
             with open(f"static/{file_name}.png", "wb") as f:
                 f.write(photo.get("bytes"))
             # https://t.me/FatherKomm ТУТ ФУНКЦИЮ СВОЮ ВПИХИВАЕШЬ КОТОРАЯ ПРИНИМАЕТ f"static/{file_name}.png" и НА ВЫХОД ОТДАЕТ ПУТЬ К ФОТКЕ TODO:
-            await websocket.send_text(f"static/{file_name}.png")
+            res = заглушка_мл_функции(f"static/{file_name}.png")
+            await websocket.send_text(res)
         except WebSocketException:
             await websocket.close()
             await manager.delete(websocket)
