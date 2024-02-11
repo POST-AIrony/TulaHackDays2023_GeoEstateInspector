@@ -1,7 +1,7 @@
 import os
 from zipfile import ZipFile
-from PIL import Image
 
+from PIL import Image
 
 
 def convert_tif_to_jpg(path_to_image, output_folder="result"):
@@ -69,9 +69,7 @@ def archive_and_delete_files(name):
         file_path = os.path.join(folder_path, file_name)
         os.remove(file_path)
 
-    print(
-        f"Файлы от {name} Заархивированы и удалены. Архив создан: {zip_file_path}"
-    )
+    print(f"Файлы от {name} Заархивированы и удалены. Архив создан: {zip_file_path}")
     print("тут логи")
 
     # Возвращение пути к созданному ZIP-архиву
@@ -95,7 +93,7 @@ def is_tiff(filename):
     Notes
     -----
     Эта функция использует метод os.path.splitext(), чтобы разделить путь к файлу на
-    базовое имя и расширение файла. Затем она проверяет, является ли расширение .tiff, 
+    базовое имя и расширение файла. Затем она проверяет, является ли расширение .tiff,
     игнорируя регистр символов.
 
     Examples
@@ -119,5 +117,9 @@ def generate_unique_name(path_to_file):
     Returns:
     - str: Уникальное имя файла.
     """
-    name = os.path.splitext(os.path.basename(path_to_file))[0] + "_" + str(randint(5, 10000))
+    name = (
+        os.path.splitext(os.path.basename(path_to_file))[0]
+        + "_"
+        + str(randint(5, 10000))
+    )
     return name
