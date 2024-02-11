@@ -1,23 +1,9 @@
-import os
-from datetime import datetime
-from random import randint
-from zipfile import ZipFile
-
-import cv2
-import fiona
-import numpy as np
-import pyproj
-import rasterio
-from PIL import Image
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
-from shapely.geometry import Point, Polygon, mapping, shape
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator
 
 
-def write_results_to_pdf(results, name):
+def write_results_to_pdf(results, name, path_to_save_folder):
     """
     Создает PDF-документ с результатами обработки и включает в него информацию о зданиях и изображение с обозначенными рамками.
 
@@ -28,11 +14,10 @@ def write_results_to_pdf(results, name):
     Returns:
     - Результат выполнения функции archive_and_delete_files.
     """
-    print(datetime.now())
-    print("PATH: /system/server.py -> write_results_to_pdf")
+    print("Лог о создании pdf")
 
     # Путь к PDF-документу
-    pdf_path = "result/" + name + ".pdf"
+    pdf_path = path_to_save_folder + name + ".pdf"
     c = canvas.Canvas(pdf_path, pagesize=letter)
     c.setFont("Helvetica", 12)
     y_coordinate = 700
@@ -51,7 +36,7 @@ def write_results_to_pdf(results, name):
 
     # Добавление изображения с обозначенными рамками в PDF
     c.showPage()
-    image_reader = ImageReader("result/" + name + "_boxed.jpg")
+    image_reader = ImageReader(path_to_save_folder + name + "_boxed.jpg")
     c.drawImage(image_reader, 100, 100, width=500, height=500)
 
     # Сохранение PDF-документа

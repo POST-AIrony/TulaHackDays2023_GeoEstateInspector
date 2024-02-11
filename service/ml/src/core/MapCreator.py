@@ -1,20 +1,6 @@
-import os
-from datetime import datetime
-from random import randint
-from zipfile import ZipFile
-
-import cv2
 import fiona
-import numpy as np
 import pyproj
-import rasterio
-from PIL import Image
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
-from reportlab.pdfgen import canvas
-from shapely.geometry import Point, Polygon, mapping, shape
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator
+from shapely.geometry import Point, shape
 
 
 # Определение схемы для нового Shapefile
@@ -24,7 +10,7 @@ schema = {
 }
 
 
-def find_parcel_for_building(name, path_to_land_map):
+def find_parcel_for_building(name, path_to_save_folder, path_to_land_map):
     """
     Идентифицирует земельные участки, на которых расположены здания, и создает новый Shapefile с результатами.
 
@@ -34,11 +20,13 @@ def find_parcel_for_building(name, path_to_land_map):
     Returns:
     - Результат выполнения функции write_results_to_pdf.
     """
-    print("Тут лог о том что мы ищем здания на фотке")
+    print(
+        "Тут лог о том что мы ищем здания на фотке и кадастровый номер им притягиваем"
+    )
 
     # Открытие файлов Shapefile для зданий и земельных участков
     parcels = fiona.open(path_to_land_map, "r")
-    buildings_shp_path = "result/" + name + ".shp"
+    buildings_shp_path = path_to_save_folder + name + ".shp"
     buildings = fiona.open(buildings_shp_path, "r")
     results = []
 
@@ -53,14 +41,17 @@ def find_parcel_for_building(name, path_to_land_map):
         )
     else:
         transformer = None
-        
-    
+
     # Путь к новому Shapefile
-    path = "result/" + name + "_with_parcel.shp"
+    output_shapefile_path = path_to_save_folder + name + "_with_parcel.shp"
 
     # Создание нового Shapefile и запись результатов
     with fiona.open(
-        path, "w", driver="ESRI Shapefile", schema=schema, crs=buildings.crs
+        output_shapefile_path,
+        "w",
+        driver="ESRI Shapefile",
+        schema=schema,
+        crs=buildings.crs,
     ) as output:
         for building in buildings:
             building_polygon = shape(building["geometry"])

@@ -1,6 +1,3 @@
-import os
-from datetime import datetime
-from random import randint
 import cv2
 import fiona
 import numpy as np
@@ -28,7 +25,7 @@ def load_model(model_path):
     return YOLO(model_path, task="detect")
 
 
-def image_processing(path_to_tif, model_path, unique_name):
+def image_processing(path_to_tif, path_to_save_folder, model_path, unique_name):
     """
     Обрабатывает изображение в формате TIFF, используя модель YOLO для детекции объектов.
 
@@ -43,7 +40,7 @@ def image_processing(path_to_tif, model_path, unique_name):
     names = model.names
 
     # Конвертация из TIFF в JPEG
-    path_to_jpg = convert_tif_to_jpg(path_to_tif)
+    path_to_jpg = convert_tif_to_jpg(path_to_tif, output_folder=path_to_save_folder)
     img = Image.open(path_to_jpg)
     img = np.ascontiguousarray(img)
 
@@ -52,8 +49,8 @@ def image_processing(path_to_tif, model_path, unique_name):
     annotator = Annotator(img)
     features = []  # Предварительно выделенный список для хранения объектов
     # Путь к выходному файлу Shapefile
-    output_shapefile_path = "result/" + unique_name + ".shp"
-
+    output_shapefile_path = path_to_save_folder + unique_name + ".shp"
+    output_boxed_jpg_path = path_to_save_folder + unique_name + "_boxed.jpg"
     with rasterio.open(path_to_tif) as src:
         transform = src.transform
 
@@ -64,7 +61,7 @@ def image_processing(path_to_tif, model_path, unique_name):
             schema=schema,
             crs=src.crs,
         ) as shp:
-            
+
             # Обработка результатов детекции
             for r in results:
                 for id, box in enumerate(r.boxes, start=1):
@@ -89,9 +86,12 @@ def image_processing(path_to_tif, model_path, unique_name):
             shp.writerecords(features)
 
     # Сохранение изображения с обозначенными рамками в файл
-    cv2.imwrite("result/" + unique_name + "_boxed.jpg", annotator.result())
+    cv2.imwrite(output_boxed_jpg_path, annotator.result())
 
 
-image_processing("/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/tula/кимовск/kimovsk2022-25-15.tif",
-                 "/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/TulaHackDays2023_GeoEstateInspector/server/model_100epochs_second.pt",
-                 "test")
+image_processing(
+    "/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/tula/кимовск/kimovsk2022-25-15.tif",
+    "result",
+    "/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/TulaHackDays2023_GeoEstateInspector/server/model_100epochs_second.pt",
+    "test",
+)
