@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, WebSocket, WebSocketException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from ml import models
 
 from .service import MLService
 
@@ -59,17 +60,37 @@ async def заглушка_мл_функции(путь_до_фото):
     return путь_до_фото
 
 
-@ws_ml.websocket("/ws/{client_id}/{model_type}")
+@ws_ml.websocket("/ws/{client_id}/{model_type}/{city_title}")
 async def websocket_endpoint(
-    websocket: WebSocket, client_id: int, model_type: str, token: str
+    websocket: WebSocket, client_id: int, model_type: str, city_title: str, token: str
 ):
-    print("WS CALL")
     await manager.connect(websocket)
-    res = await MLService.get_user(token)
-    if isinstance(res, list):
+
+    print("WS CALL")  # TODO: Log this
+
+    # check model type
+    if await models.ModelType.exists(title=model_type):
+        model = models.ModelType.get(title=model_type)
+    else:
+        # TODO: Log this
+        await websocket.send_text("Model not found")
+        await websocket.close()
+
+    # check city
+    if await models.CityModel.exists(title=city_title):
+        city = models.CityModel.get(title=city_title)
+    else:
+        # TODO: Log this
+        await websocket.send_text("City not found")
+        await websocket.close()
+
+    # get user
+    user = await MLService.get_user(token)
+    if isinstance(user, list):
         await websocket.send_text(res[1])
         await websocket.close()
         await manager.delete(websocket)
+    print(user)
 
     await websocket.send_text("connected")
     while True:
@@ -79,7 +100,11 @@ async def websocket_endpoint(
             with open(f"static/{file_name}.png", "wb") as f:
                 f.write(photo.get("bytes"))
             # https://t.me/FatherKomm ТУТ ФУНКЦИЮ СВОЮ ВПИХИВАЕШЬ КОТОРАЯ ПРИНИМАЕТ f"static/{file_name}.png" и НА ВЫХОД ОТДАЕТ ПУТЬ К ФОТКЕ TODO:
-            res = заглушка_мл_функции(f"static/{file_name}.png")
+            res = await заглушка_мл_функции(f"/static/{file_name}.png")
+
+            new_photo = models.PhotoFromUser(from_user_id=user.user_id, result_src=res)
+            await new_photo.save()
+
             await websocket.send_text(res)
         except WebSocketException:
             await websocket.close()

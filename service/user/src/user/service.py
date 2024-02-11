@@ -26,6 +26,7 @@ class UserService:
             email_validated=user.email_validated,
             is_admin=user.is_admin,
             username=user.username,
+            user_id=user.id,
         )
         # Возвращается модель пользователя
 
