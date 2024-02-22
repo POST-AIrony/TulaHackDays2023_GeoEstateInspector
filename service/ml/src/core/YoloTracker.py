@@ -56,7 +56,7 @@ def image_processing(path_to_tif, path_to_save_folder, model_path, unique_name):
         transform = src.transform
         print(transform)
         coordinates = src.crs
-        print(coordinates)
+        print(coordinates.type())
 
     with fiona.open(
         output_shapefile_path,
@@ -94,8 +94,8 @@ def image_processing(path_to_tif, path_to_save_folder, model_path, unique_name):
 
 
 image_processing(
-    "/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/tula/кимовск/kimovsk2022-25-15.tif",
+    "/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/tula/кимовск/kimovsk2022-25-13.tif",
     "result",
-    "/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/TulaHackDays2023_GeoEstateInspector/server/model_100epochs_second.pt",
+    "model_100epochs_second.pt",
     "test",
 )
