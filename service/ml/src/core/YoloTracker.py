@@ -51,39 +51,43 @@ def image_processing(path_to_tif, path_to_save_folder, model_path, unique_name):
     # Путь к выходному файлу Shapefile
     output_shapefile_path = path_to_save_folder + unique_name + ".shp"
     output_boxed_jpg_path = path_to_save_folder + unique_name + "_boxed.jpg"
+
     with rasterio.open(path_to_tif) as src:
         transform = src.transform
+        print(transform)
+        coordinates = src.crs
+        print(coordinates)
 
-        with fiona.open(
-            output_shapefile_path,
-            mode="w",
-            driver="ESRI Shapefile",
-            schema=schema,
-            crs=src.crs,
-        ) as shp:
+    with fiona.open(
+        output_shapefile_path,
+        mode="w",
+        driver="ESRI Shapefile",
+        schema=schema,
+        crs=coordinates,
+    ) as shp:
 
-            # Обработка результатов детекции
-            for r in results:
-                for id, box in enumerate(r.boxes, start=1):
-                    b = box.xyxy[0]
-                    label = names[int(box.cls)]
-                    box_geo = [
-                        transform * (b[0], b[1]),
-                        transform * (b[0], b[3]),
-                        transform * (b[2], b[3]),
-                        transform * (b[2], b[1]),
-                        transform * (b[0], b[1]),
-                    ]
+        # Обработка результатов детекции
+        for r in results:
+            for id, box in enumerate(r.boxes, start=1):
+                b = box.xyxy[0]
+                label = names[int(box.cls)]
+                box_geo = [
+                    transform * (b[0], b[1]),
+                    transform * (b[0], b[3]),
+                    transform * (b[2], b[3]),
+                    transform * (b[2], b[1]),
+                    transform * (b[0], b[1]),
+                ]
 
-                    polygon = Polygon(box_geo)
+                polygon = Polygon(box_geo)
 
-                    row_dict = {
-                        "geometry": mapping(polygon),
-                        "properties": {"id": id, "Name": names[int(box.cls)]},
-                    }
-                    features.append(row_dict)
-                    annotator.box_label(b, label, color=(79, 226, 104))
-            shp.writerecords(features)
+                row_dict = {
+                    "geometry": mapping(polygon),
+                    "properties": {"id": id, "Name": names[int(box.cls)]},
+                }
+                features.append(row_dict)
+                annotator.box_label(b, label, color=(79, 226, 104))
+        shp.writerecords(features)
 
     # Сохранение изображения с обозначенными рамками в файл
     cv2.imwrite(output_boxed_jpg_path, annotator.result())
