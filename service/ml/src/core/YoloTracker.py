@@ -1,15 +1,8 @@
-import cv2
-import fiona
 import numpy as np
-import rasterio
 from PIL import Image
-from shapely.geometry import Polygon, mapping
 from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator
 from FilesPreprocessor import convert_tif_to_jpg
-
-
-schema = {"geometry": "Polygon", "properties": [("id", "int"), ("Name", "str")]}
+from MapCreator import TakeInfoFromTif, CreateShapefile
 
 
 def load_model(model_path):
@@ -46,56 +39,26 @@ def image_processing(path_to_tif, path_to_save_folder, model_path, unique_name):
 
     # Получение предсказаний модели YOLO
     results = model.predict(img)
-    annotator = Annotator(img)
-    features = []  # Предварительно выделенный список для хранения объектов
-    # Путь к выходному файлу Shapefile
+    # Путь к выходным файлам
     output_shapefile_path = path_to_save_folder + unique_name + ".shp"
     output_boxed_jpg_path = path_to_save_folder + unique_name + "_boxed.jpg"
 
-    with rasterio.open(path_to_tif) as src:
-        transform = src.transform
-        print(transform)
-        coordinates = src.crs
-        print(coordinates.type())
+    transform, coordinates = TakeInfoFromTif(path_to_tif)
 
-    with fiona.open(
+    CreateShapefile(
         output_shapefile_path,
-        mode="w",
-        driver="ESRI Shapefile",
-        schema=schema,
-        crs=coordinates,
-    ) as shp:
-
-        # Обработка результатов детекции
-        for r in results:
-            for id, box in enumerate(r.boxes, start=1):
-                b = box.xyxy[0]
-                label = names[int(box.cls)]
-                box_geo = [
-                    transform * (b[0], b[1]),
-                    transform * (b[0], b[3]),
-                    transform * (b[2], b[3]),
-                    transform * (b[2], b[1]),
-                    transform * (b[0], b[1]),
-                ]
-
-                polygon = Polygon(box_geo)
-
-                row_dict = {
-                    "geometry": mapping(polygon),
-                    "properties": {"id": id, "Name": names[int(box.cls)]},
-                }
-                features.append(row_dict)
-                annotator.box_label(b, label, color=(79, 226, 104))
-        shp.writerecords(features)
-
-    # Сохранение изображения с обозначенными рамками в файл
-    cv2.imwrite(output_boxed_jpg_path, annotator.result())
+        output_boxed_jpg_path,
+        results,
+        names,
+        transform,
+        coordinates,
+        img,
+    )
 
 
 image_processing(
-    "/home/rebelraider/Документы/Python projects/MachineLearning/Hackatons/tula/кимовск/kimovsk2022-25-13.tif",
-    "result",
+    "kimovsk2022-23-14.tif",
+    "result/",
     "model_100epochs_second.pt",
     "test",
 )

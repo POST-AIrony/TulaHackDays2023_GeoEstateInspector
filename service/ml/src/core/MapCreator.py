@@ -1,13 +1,18 @@
 import fiona
 import pyproj
-from shapely.geometry import Point, shape
+from shapely.geometry import Point, shape, Polygon, mapping
+from ultralytics.utils.plotting import Annotator
+import cv2
+import rasterio
 
 
 # Определение схемы для нового Shapefile
-schema = {
+schema_parcel = {
     "geometry": "Polygon",
     "properties": [("id", "int"), ("Name", "str"), ("cadastral_", "str")],
 }
+
+schema_shp = {"geometry": "Polygon", "properties": [("id", "int"), ("Name", "str")]}
 
 
 def find_parcel_for_building(name, path_to_save_folder, path_to_land_map):
@@ -50,7 +55,7 @@ def find_parcel_for_building(name, path_to_save_folder, path_to_land_map):
         output_shapefile_path,
         "w",
         driver="ESRI Shapefile",
-        schema=schema,
+        schema=schema_parcel,
         crs=buildings.crs,
     ) as output:
         for building in buildings:
@@ -109,3 +114,56 @@ def find_parcel_for_building(name, path_to_save_folder, path_to_land_map):
 
     # Вызов функции write_results_to_pdf для создания PDF-документа с результатами
     return results
+
+
+def CreateShapefile(
+    output_shapefile_path,
+    output_boxed_jpg_path,
+    track_results,
+    names,
+    transform,
+    coordinates,
+    img,
+):
+    annotator = Annotator(img)
+    features = []
+    with fiona.open(
+        output_shapefile_path,
+        mode="w",
+        driver="ESRI Shapefile",
+        schema=schema_shp,
+        crs=coordinates,
+    ) as shp:
+
+        # Обработка результатов детекции
+        for r in track_results:
+            for id, box in enumerate(r.boxes, start=1):
+                b = box.xyxy[0]
+                label = names[int(box.cls)]
+                box_geo = [
+                    transform * (b[0], b[1]),
+                    transform * (b[0], b[3]),
+                    transform * (b[2], b[3]),
+                    transform * (b[2], b[1]),
+                    transform * (b[0], b[1]),
+                ]
+
+                polygon = Polygon(box_geo)
+
+                row_dict = {
+                    "geometry": mapping(polygon),
+                    "properties": {"id": id, "Name": names[int(box.cls)]},
+                }
+                features.append(row_dict)
+                annotator.box_label(b, label, color=(79, 226, 104))
+        shp.writerecords(features)
+
+    cv2.imwrite(output_boxed_jpg_path, annotator.result())
+
+
+def TakeInfoFromTif(path_to_tif):
+    with rasterio.open(path_to_tif) as src:
+        transform = src.transform
+        coordinates = src.crs
+
+    return transform, coordinates

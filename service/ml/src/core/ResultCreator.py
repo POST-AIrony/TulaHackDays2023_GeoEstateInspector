@@ -3,7 +3,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 
-def write_results_to_pdf(results, name, path_to_save_folder):
+def WriteResultsToPdf(results, name, path_to_save_folder):
     """
     Создает PDF-документ с результатами обработки и включает в него информацию о зданиях и изображение с обозначенными рамками.
 
@@ -18,26 +18,26 @@ def write_results_to_pdf(results, name, path_to_save_folder):
 
     # Путь к PDF-документу
     pdf_path = path_to_save_folder + name + ".pdf"
-    c = canvas.Canvas(pdf_path, pagesize=letter)
-    c.setFont("Helvetica", 12)
+    pdf = canvas.Canvas(pdf_path, pagesize=letter)
+    pdf.setFont("Helvetica", 12)
     y_coordinate = 700
 
     # Добавление информации о зданиях в PDF
     for result in results:
-        building_info = f"Building ID: {result['building_id']}, Building Type: {result['building_type']}, Building Position: {result['building_position']}, Parcel ID: {result['parcel_id']}, cadastral_: {result['cadastral_']}"
+        building_info = f"ID Здания: {result['building_id']}, Тип здания: {result['building_type']}, Местоположение здания: {result['building_position']}, ID кадастрового номера: {result['parcel_id']}, Кадастровый номер: {result['cadastral_']}"
 
         info_lines = building_info.split(", ")
 
         for line in info_lines:
-            c.drawString(100, y_coordinate, line)
+            pdf.drawString(100, y_coordinate, line)
             y_coordinate -= 14
-        c.showPage()
+        pdf.showPage()
         y_coordinate = 700
 
     # Добавление изображения с обозначенными рамками в PDF
-    c.showPage()
+    pdf.showPage()
     image_reader = ImageReader(path_to_save_folder + name + "_boxed.jpg")
-    c.drawImage(image_reader, 100, 100, width=500, height=500)
+    pdf.drawImage(image_reader, 100, 100, width=500, height=500)
 
     # Сохранение PDF-документа
-    c.save()
+    pdf.save()

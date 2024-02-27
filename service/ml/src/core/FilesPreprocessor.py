@@ -13,7 +13,7 @@ def convert_tif_to_jpg(path_to_image, output_folder):
     path_to_image : str
         Путь к файлу изображения в формате TIFF, который требуется конвертировать.
     output_folder : str, optional
-        Путь к папке, куда будет сохранен конвертированный файл в формате JPEG. 
+        Путь к папке, куда будет сохранен конвертированный файл в формате JPEG.
         По умолчанию используется папка "result".
 
     Returns
@@ -26,7 +26,7 @@ def convert_tif_to_jpg(path_to_image, output_folder):
     >>> convert_tif_to_jpg("/путь/к/файлу/изображение.tif", "output")
     "output/изображение.jpg"
     """
-    
+
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -67,7 +67,9 @@ def archive_and_delete_files(name, path_to_save_folder, path_to_output_zip_folde
     print("тут логи")
 
     # Получение списка файлов для архивации
-    files_to_archive = [f for f in os.listdir(path_to_save_folder) if f.startswith(name)]
+    files_to_archive = [
+        f for f in os.listdir(path_to_save_folder) if f.startswith(name)
+    ]
 
     # Проверка наличия файлов для архивации
     if not files_to_archive:
@@ -79,7 +81,7 @@ def archive_and_delete_files(name, path_to_save_folder, path_to_output_zip_folde
     with ZipFile(zip_file_path, "w") as zipfile:
         for file_name in files_to_archive:
             file_path = os.path.join(path_to_save_folder, file_name)
-            
+
             # Добавление файла в архив
             zipfile.write(file_path, os.path.basename(file_path))
 
