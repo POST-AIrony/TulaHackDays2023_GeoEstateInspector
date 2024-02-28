@@ -1,32 +1,24 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
+from ultralytics.utils.plotting import Annotator
+import cv2
 
 
-def WriteResultsToPdf(results, name, path_to_save_folder):
-    """
-    Создает PDF-документ с результатами обработки и включает в него информацию о зданиях и изображение с обозначенными рамками.
-
-    Parameters:
-    - results (list): Список словарей с информацией о зданиях и соответствующих им земельных участках.
-    - name (str): Уникальное имя для файлов и результатов обработки.
-
-    Returns:
-    - Результат выполнения функции archive_and_delete_files.
-    """
+def create_results_pdf(results, output_pdf_path):
     print("Лог о создании pdf")
 
-    # Путь к PDF-документу
-    pdf_path = path_to_save_folder + name + ".pdf"
-    pdf = canvas.Canvas(pdf_path, pagesize=letter)
+    pdf = canvas.Canvas(output_pdf_path, pagesize=letter)
     pdf.setFont("Helvetica", 12)
     y_coordinate = 700
 
-    # Добавление информации о зданиях в PDF
     for result in results:
-        building_info = f"ID Здания: {result['building_id']}, Тип здания: {result['building_type']}, Местоположение здания: {result['building_position']}, ID кадастрового номера: {result['parcel_id']}, Кадастровый номер: {result['cadastral_']}"
-
-        info_lines = building_info.split(", ")
+        info_lines = [
+            f"ID Здания: {result['building_id']}",
+            f"Тип здания: {result['building_type']}",
+            f"Местоположение здания: {result['building_position']}",
+            f"ID кадастрового номера: {result['parcel_id']}",
+            f"Кадастровый номер: {result['cadastral_']}",
+        ]
 
         for line in info_lines:
             pdf.drawString(100, y_coordinate, line)
@@ -34,10 +26,16 @@ def WriteResultsToPdf(results, name, path_to_save_folder):
         pdf.showPage()
         y_coordinate = 700
 
-    # Добавление изображения с обозначенными рамками в PDF
-    pdf.showPage()
-    image_reader = ImageReader(path_to_save_folder + name + "_boxed.jpg")
-    pdf.drawImage(image_reader, 100, 100, width=500, height=500)
-
     # Сохранение PDF-документа
     pdf.save()
+    
+
+def annotate_tracking_results(img, track_results, names):
+    annotator = Annotator(img)
+    for r in track_results:
+            for box in r.boxes:
+                b = box.xyxy[0]
+                label = names[int(box.cls)]
+                annotator.box_label(b, label, color=(79, 226, 104))
+    return annotator.result()
+    

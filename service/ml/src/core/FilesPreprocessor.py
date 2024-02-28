@@ -2,49 +2,18 @@ import os
 from random import randint
 from zipfile import ZipFile
 from PIL import Image
+import numpy as np
 
-
-def convert_tif_to_jpg(path_to_image, output_folder):
-    """
-    Конвертирует изображение из формата TIFF в формат JPEG.
-
-    Parameters
-    ----------
-    path_to_image : str
-        Путь к файлу изображения в формате TIFF, который требуется конвертировать.
-    output_folder : str, optional
-        Путь к папке, куда будет сохранен конвертированный файл в формате JPEG.
-        По умолчанию используется папка "result".
-
-    Returns
-    -------
-    str
-        Путь к конвертированному файлу в формате JPEG.
-
-    Пример
-    -------
-    >>> convert_tif_to_jpg("/путь/к/файлу/изображение.tif", "output")
-    "output/изображение.jpg"
-    """
-
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    with Image.open(path_to_image) as img:
+def convert_tif_to_jpg(path_to_tif):
+    with Image.open(path_to_tif) as img:
         if img.mode == "RGBA":
             img = img.convert("RGB")
-
-        # Создание пути к выходному файлу, заменяя расширение на .jpg
-        output_path = os.path.join(
-            output_folder, os.path.splitext(os.path.basename(path_to_image))[0] + ".jpg"
-        )
-        # Сохранение изображения в формате JPEG
-        img.save(output_path, "JPEG")
-        print(f"Лог из разряда Converted {path_to_image} to {output_path}")
-        return output_path
+            img = np.ascontiguousarray(img)
+        print(f"Лог из разряда {path_to_tif} конвертирован в jpg")
+        return img
 
 
-def archive_and_delete_files(name, path_to_save_folder, path_to_output_zip_folder):
+def archive_and_delete_files(name, path_to_save_folder, output_zip_path):
     """
     Архивирует и удаляет файлы с определенным именем.
 
@@ -77,27 +46,24 @@ def archive_and_delete_files(name, path_to_save_folder, path_to_output_zip_folde
         return None
 
     # Создание ZIP-архива
-    zip_file_path = os.path.join(path_to_output_zip_folder, f"{name}_archive.zip")
-    with ZipFile(zip_file_path, "w") as zipfile:
+    with ZipFile(output_zip_path, "w") as zipfile:
         for file_name in files_to_archive:
             file_path = os.path.join(path_to_save_folder, file_name)
 
             # Добавление файла в архив
             zipfile.write(file_path, os.path.basename(file_path))
 
-    # Удаление заархивированных файлов
-    for file_name in files_to_archive:
-        file_path = os.path.join(path_to_save_folder, file_name)
-        os.remove(file_path)
+            # Удаление заархивированного файла
+            os.remove(file_path)
 
-    print(f"Файлы от {name} Заархивированы и удалены. Архив создан: {zip_file_path}")
+    print(f"Файлы от {name} Заархивированы и удалены. Архив создан: {output_zip_path}")
     print("тут логи")
 
     # Возвращение пути к созданному ZIP-архиву
-    return zip_file_path
+    return output_zip_path
 
 
-def is_tiff(filename):
+def is_tif_file(filename):
     """
     Проверяет, является ли файл формата .tiff по имени.
 
@@ -124,32 +90,12 @@ def is_tiff(filename):
     >>> is_tiff("document.txt")
     False
     """
-    _, file_extension = os.path.splitext(filename)
-    return file_extension.lower() == ".tiff"
+    file_extension = os.path.splitext(filename)[1]
+    return file_extension.lower() == ".tif"
 
 
 def generate_unique_name(path_to_file):
-    """
-    Генерирует уникальное имя на основе пути к файлу.
-
-    Parameters
-    ----------
-    path_to_file : str
-        Путь к файлу, на основе которого будет создано уникальное имя.
-
-    Returns
-    -------
-    str
-        Уникальное имя файла, сгенерированное на основе пути к файлу.
-
-    Пример
-    -------
-    >>> generate_unique_name("/путь/к/файлу/файл.txt")
-    'файл_7234'
-    """
     name = (
         os.path.splitext(os.path.basename(path_to_file))[0]
-        + "_"
-        + str(randint(5, 10000))
     )
     return name
