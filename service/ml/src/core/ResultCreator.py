@@ -1,23 +1,27 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from ultralytics.utils.plotting import Annotator
-import cv2
+from shapely.geometry import shape
+import csv
+import numpy as np
+from typing import Any, List, Union, Dict
 
 
-def create_results_pdf(results, output_pdf_path):
+def create_results_pdf(
+    buildings: Union[List[Dict], List[None]], output_pdf_path: str
+) -> None:
     print("Лог о создании pdf")
 
     pdf = canvas.Canvas(output_pdf_path, pagesize=letter)
-    pdf.setFont("Helvetica", 12)
     y_coordinate = 700
 
-    for result in results:
+    for building in buildings:
+
         info_lines = [
-            f"ID Здания: {result['building_id']}",
-            f"Тип здания: {result['building_type']}",
-            f"Местоположение здания: {result['building_position']}",
-            f"ID кадастрового номера: {result['parcel_id']}",
-            f"Кадастровый номер: {result['cadastral_']}",
+            f"ID Здания: {building['properties']['id']}",
+            f"Тип здания: {building['properties']['Name']}",
+            f"Местоположение здания: {shape(building['geometry']).centroid.coords[0]}",
+            f"Кадастровый номер: {building['properties']['cadastral_']}",
         ]
 
         for line in info_lines:
@@ -28,14 +32,34 @@ def create_results_pdf(results, output_pdf_path):
 
     # Сохранение PDF-документа
     pdf.save()
-    
 
-def annotate_tracking_results(img, track_results, names):
+
+def annotate_tracking_results(
+    img: np.ndarray, track_results: Any, names: List[str]
+) -> np.ndarray:
     annotator = Annotator(img)
     for r in track_results:
-            for box in r.boxes:
-                b = box.xyxy[0]
-                label = names[int(box.cls)]
-                annotator.box_label(b, label, color=(79, 226, 104))
+        for box in r.boxes:
+            b = box.xyxy[0]
+            label = names[int(box.cls)]
+            annotator.box_label(b, label, color=(79, 226, 104))
     return annotator.result()
-    
+
+
+def create_result_csv(
+    buildings: Union[List[Dict], List[None]], output_csv_path: str
+) -> None:
+    with open(output_csv_path, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["ID Здания", "Тип здания", "x", "y", "Кадастровый номер"])
+        for building in buildings:
+            writer.writerow(
+                [
+                    building["properties"]["id"],
+                    building["properties"]["Name"],
+                    shape(building["geometry"]).centroid.x,
+                    shape(building["geometry"]).centroid.y,
+                    building["properties"]["cadastral_"],
+                ]
+            )
+    print(f"CSV файл успешно создан: {output_csv_path}")

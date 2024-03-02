@@ -1,11 +1,9 @@
-import numpy as np
-from PIL import Image
 from ultralytics import YOLO
-from FilesPreprocessor import convert_tif_to_jpg
-from MapCreator import TakeInfoFromTif, CreateShapefile
+from typing import Tuple, List, Any
+import numpy as np
 
 
-def load_yolo_detection_model(model_path):
+def load_yolo_detection_model(model_path: str) -> YOLO:
     """
     Загружает модель YOLO для детекции объектов.
 
@@ -18,12 +16,14 @@ def load_yolo_detection_model(model_path):
     return YOLO(model_path, task="detect")
 
 
-def detect_objects_in_image(img, path_to_model):
+def detect_objects_in_image(
+    img: np.ndarray, path_to_model: str
+) -> Tuple[Any, List[str]]:
     print('тут логи "фото обработалось такое то"')
     model = load_yolo_detection_model(path_to_model)
     names = model.names
 
     # Получение предсказаний модели YOLO
     results = model.predict(img)
-    
+
     return results, names
