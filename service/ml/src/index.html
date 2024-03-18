@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chat</title>
+	</head>
+	<body>
+		<h1>WebSocket Client For GEI</h1>
+		<button onClick="showForm(event)" id="connect">Connect</button>
+		<form
+			action=""
+			onsubmit="sendMessage(event)"
+			id="form"
+			style="display: none"
+		>
+			<input type="file" id="filename" />
+			<button type="submit">send</button>
+		</form>
+		<script>
+			var clientID = Date.now()
+			const token = prompt('TOKEN: ')
+			const model = prompt('MODEL: ')
+			const city = prompt('CITY: ')
+			var ws = new WebSocket(
+				`ws://localhost:8001/ws/${clientID}/${model}/${city}?token=${token}`
+			)
+
+			function processMessage(event) {
+				alert(event.data)
+// но он есл что не всегде пути к фоткам шлет так что это тут надо обрабатывать
+// типа если слово static есть в event.data то тогда создавать фотку
+
+				let img = document.createElement('img')
+				img.src = event.data
+				document.body.appendChild(img)
+			}
+
+			ws.onmessage = processMessage
+
+			function sendMessage(event) {
+				var file = document.getElementById('filename').files[0]
+				var reader = new FileReader()
+
+				var rawData = new ArrayBuffer()
+
+				reader.loadend = function () {}
+				reader.onload = function (e) {
+					rawData = e.target.result
+
+					ws.send(rawData)
+				}
+
+				reader.readAsArrayBuffer(file)
+
+				event.preventDefault()
+			}
+
+			function showForm(event) {
+				var button = document.getElementById('connect')
+				var form = document.getElementById('form')
+				button.style.display = 'none'
+				form.style.display = 'block'
+			}
+		</script>
+	</body>
+</html>
